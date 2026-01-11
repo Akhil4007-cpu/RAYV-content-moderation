@@ -14,10 +14,24 @@ from datetime import datetime
 def check_yt_dlp():
     """Check if yt-dlp is installed"""
     try:
-        subprocess.run(["yt-dlp", "--version"], capture_output=True, check=True)
+        # Try yt-dlp command first
+        result = subprocess.run(["yt-dlp", "--version"], capture_output=True, check=True, timeout=5)
         return True
     except:
-        return False
+        try:
+            # Try python -m yt_dlp (works when installed in venv)
+            result = subprocess.run([sys.executable, "-m", "yt_dlp", "--version"], capture_output=True, check=True, timeout=5)
+            return True
+        except:
+            return False
+
+def get_yt_dlp_cmd():
+    """Get the correct yt-dlp command"""
+    try:
+        subprocess.run(["yt-dlp", "--version"], capture_output=True, check=True, timeout=2)
+        return ["yt-dlp"]
+    except:
+        return [sys.executable, "-m", "yt_dlp"]
 
 def search_videos(query, max_results=5, platforms=["youtube"]):
     """
@@ -30,8 +44,8 @@ def search_videos(query, max_results=5, platforms=["youtube"]):
         try:
             if platform == "youtube":
                 # Search YouTube and get URLs first
-                cmd_search = [
-                    "yt-dlp",
+                yt_dlp = get_yt_dlp_cmd()
+                cmd_search = yt_dlp + [
                     f"ytsearch{max_results*2}:{query}",
                     "--flat-playlist",
                     "--print", "%(url)s",
@@ -44,8 +58,7 @@ def search_videos(query, max_results=5, platforms=["youtube"]):
                 # Check each URL for duration
                 for url in urls[:max_results*2]:
                     try:
-                        cmd_info = [
-                            "yt-dlp",
+                        cmd_info = yt_dlp + [
                             "--print", "%(duration)s|||%(title)s",
                             "--quiet",
                             "--no-download",
@@ -79,8 +92,8 @@ def search_videos(query, max_results=5, platforms=["youtube"]):
 
 def get_video_info(url):
     """Get video title and duration"""
-    cmd = [
-        "yt-dlp",
+    yt_dlp = get_yt_dlp_cmd()
+    cmd = yt_dlp + [
         "--print", "%(title)s|||%(duration)s",
         "--quiet",
         url
@@ -110,8 +123,8 @@ def download_video(url, output_path, target_duration=15):
     info = get_video_info(url)
     video_duration = info.get("duration", 0)
     
-    cmd = [
-        "yt-dlp",
+    yt_dlp = get_yt_dlp_cmd()
+    cmd = yt_dlp + [
         "-f", "best[ext=mp4]/best",
         "-o", output_path,
         "--no-playlist",
