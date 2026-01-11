@@ -21,3 +21,6 @@ numpy>=1.24.0
 
 # CLIP (from git)
 clip @ git+https://github.com/openai/CLIP.git
+
+# YouTube downloader for testing
+yt-dlp>=2023.0.0

@@ -210,6 +210,37 @@ Edit `config.py` to customize:
 
 ---
 
+## 🧪 Testing & Evaluation
+
+### Automated YouTube Testing
+Test your model on real YouTube videos automatically:
+
+```bash
+# Install testing dependency
+pip install yt-dlp
+
+# Run automated tests (searches YouTube, tests all categories)
+python auto_test_all_categories.py
+```
+
+This script:
+- ✅ Automatically searches YouTube for videos in all categories
+- ✅ Tests SAFE, RISKY, and VIOLENT content
+- ✅ Downloads 15-second clips temporarily
+- ✅ Runs full pipeline on each video
+- ✅ Generates comprehensive accuracy report
+- ✅ Provides per-category breakdown
+
+**Test Coverage:**
+- **SAFE:** Cooking, Education, Nature, Daily Life, Product Reviews (23 videos)
+- **RISKY:** Action Movies, Sports, Stunts (13 videos)
+- **VIOLENT:** Fight Scenes, Weapon Usage, Violence (15 videos)
+- **Total:** ~51 videos across 11 categories
+
+**Output:**
+- `accuracy_report.json` - Detailed JSON report
+- `ACCURACY_REPORT.md` - Human-readable markdown report
+
 ## 🔬 How It Works
 
 1. **Frame Extraction** - Extracts frames at regular intervals (0.5s default)
