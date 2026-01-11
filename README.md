@@ -271,89 +271,41 @@ See individual model licenses:
 
 ---
 
-## 🔗 GitHub Hosting Guide
+## ✅ Repository Already Hosted on GitHub!
 
-### Step 1: Create GitHub Repository
-1. Go to https://github.com/new
-2. Repository name: `vision_ai_clean`
-3. Description: "AI-powered video content moderation pipeline"
-4. Choose Public or Private
-5. **Don't** initialize with README (we already have one)
-6. Click "Create repository"
+**Live Repository:** https://github.com/Akhil4007-cpu/RAYV-content-moderation
 
-### Step 2: Initialize Git (if not already)
-```bash
-git init
-```
+### Enhance Your GitHub Repository
 
-### Step 3: Create .gitignore
-```bash
-# Create .gitignore file
-cat > .gitignore << EOF
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-ENV/
+1. **Add Repository Description**
+   - Go to: https://github.com/Akhil4007-cpu/RAYV-content-moderation
+   - Click the ⚙️ (gear icon) next to "About"
+   - Add description: "AI-powered video content moderation pipeline using YOLO, RAM, and BLIP models"
 
-# Models and checkpoints
-*.pt
-*.pth
-checkpoints/
-yolov8n.pt
+2. **Add Repository Topics**
+   - Click "Add topics" button
+   - Add these topics:
+     - `computer-vision`
+     - `video-moderation`
+     - `yolo`
+     - `deep-learning`
+     - `ai`
+     - `content-moderation`
+     - `pytorch`
+     - `multimodal-ai`
 
-# Outputs
-outputs/
-frames_raw/
-frames_unique/
-*.json
+3. **Add Badges (Optional)**
+   Add to top of README.md:
+   ```markdown
+   ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+   ![PyTorch](https://img.shields.io/badge/PyTorch-Latest-orange.svg)
+   ```
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Large files
-*.mp4
-*.avi
-*.mov
-*.mkv
-EOF
-```
-
-### Step 4: Add and Commit Files
-```bash
-git add .
-git commit -m "Initial commit: Vision AI Video Moderation Pipeline"
-```
-
-### Step 5: Connect to GitHub
-```bash
-git remote add origin https://github.com/yourusername/vision_ai_clean.git
-git branch -M main
-git push -u origin main
-```
-
-### Step 6: Add Repository Topics (Optional)
-On GitHub, click "Add topics" and add:
-- `computer-vision`
-- `video-moderation`
-- `yolo`
-- `deep-learning`
-- `ai`
-- `content-moderation`
-
-### Step 7: Update README with Your GitHub Link
-Replace `yourusername` in the clone command above with your actual GitHub username.
+4. **Enable GitHub Pages (Optional)**
+   - Go to Settings → Pages
+   - Source: Deploy from a branch
+   - Branch: `main` / `/docs` folder
+   - Save
 
 ---
 
