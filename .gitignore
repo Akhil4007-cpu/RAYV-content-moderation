@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Models and checkpoints
+*.pt
+*.pth
+checkpoints/
+yolov8n.pt
+
+# Outputs
+outputs/
+frames_raw/
+frames_unique/
+*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Submodules (recognize-anything is a git repo, exclude it)
+recognize-anything/

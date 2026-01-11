@@ -1,0 +1,23 @@
+# Core ML frameworks
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Vision models
+ultralytics>=8.0.0  # YOLO
+transformers>=4.25.1  # BLIP, CLIP
+timm==0.4.12
+fairscale==0.4.4
+
+# RAM dependencies
+pycocoevalcap
+
+# Image processing
+Pillow>=9.0.0
+opencv-python>=4.8.0
+
+# Utilities
+scipy>=1.10.0
+numpy>=1.24.0
+
+# CLIP (from git)
+clip @ git+https://github.com/openai/CLIP.git
