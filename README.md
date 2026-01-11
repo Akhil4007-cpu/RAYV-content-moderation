@@ -6,8 +6,8 @@ Automated video content moderation system using YOLO, RAM, and BLIP models to de
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/yourusername/vision_ai_clean.git
-cd vision_ai_clean
+git clone https://github.com/Akhil4007-cpu/RAYV-content-moderation.git
+cd RAYV-content-moderation
 ```
 
 ### Step 2: Create Virtual Environment
