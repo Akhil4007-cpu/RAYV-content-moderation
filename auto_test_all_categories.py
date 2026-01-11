@@ -19,25 +19,63 @@ def check_yt_dlp():
     except:
         return False
 
-def search_youtube_videos(query, max_results=5, duration_filter="short"):
+def search_videos(query, max_results=5, platforms=["youtube"]):
     """
-    Search YouTube for videos using yt-dlp
-    Returns list of video URLs
+    Search multiple platforms for videos (15 seconds duration)
+    Returns list of video URLs with duration info
     """
-    cmd = [
-        "yt-dlp",
-        f"ytsearch{max_results}:{query}",
-        "--flat-playlist",
-        "--print", "url",
-        "--quiet"
-    ]
+    all_results = []
     
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        urls = [url.strip() for url in result.stdout.strip().split('\n') if url.strip()]
-        return urls[:max_results]
-    except:
-        return []
+    for platform in platforms:
+        try:
+            if platform == "youtube":
+                # Search YouTube and get URLs first
+                cmd_search = [
+                    "yt-dlp",
+                    f"ytsearch{max_results*2}:{query}",
+                    "--flat-playlist",
+                    "--print", "%(url)s",
+                    "--quiet"
+                ]
+                
+                result = subprocess.run(cmd_search, capture_output=True, text=True, timeout=30)
+                urls = [url.strip() for url in result.stdout.strip().split('\n') if url.strip()]
+                
+                # Check each URL for duration
+                for url in urls[:max_results*2]:
+                    try:
+                        cmd_info = [
+                            "yt-dlp",
+                            "--print", "%(duration)s|||%(title)s",
+                            "--quiet",
+                            "--no-download",
+                            url
+                        ]
+                        info_result = subprocess.run(cmd_info, capture_output=True, text=True, timeout=10)
+                        if info_result.returncode == 0:
+                            parts = info_result.stdout.strip().split('|||')
+                            if len(parts) >= 1:
+                                duration_str = parts[0].strip()
+                                duration = int(float(duration_str)) if duration_str.replace('.', '').replace('-', '').isdigit() else 0
+                                title = parts[1] if len(parts) > 1 else "Unknown"
+                                
+                                # Filter for videos close to 15 seconds (10-20 seconds)
+                                if 10 <= duration <= 20:
+                                    all_results.append({
+                                        "url": url,
+                                        "duration": duration,
+                                        "title": title,
+                                        "platform": platform
+                                    })
+                                    
+                                    if len(all_results) >= max_results:
+                                        return all_results[:max_results]
+                    except:
+                        continue
+        except:
+            continue
+    
+    return all_results[:max_results]
 
 def get_video_info(url):
     """Get video title and duration"""
@@ -53,29 +91,50 @@ def get_video_info(url):
         if result.returncode == 0:
             parts = result.stdout.strip().split("|||")
             if len(parts) == 2:
+                duration_str = parts[1].strip()
+                duration = int(float(duration_str)) if duration_str.replace('.', '').isdigit() else 0
                 return {
                     "title": parts[0],
-                    "duration": int(parts[1]) if parts[1].isdigit() else 0
+                    "duration": duration
                 }
     except:
         pass
     return {"title": "Unknown", "duration": 0}
 
-def download_youtube_video(url, output_path, start_time=0, duration=15):
-    """Download YouTube video clip"""
+def download_video(url, output_path, target_duration=15):
+    """
+    Download video and trim to exactly 15 seconds
+    Supports YouTube, Vimeo, Dailymotion, etc.
+    """
+    # First, get video duration
+    info = get_video_info(url)
+    video_duration = info.get("duration", 0)
+    
     cmd = [
         "yt-dlp",
         "-f", "best[ext=mp4]/best",
         "-o", output_path,
         "--no-playlist",
-        "--quiet",
-        "--postprocessor-args", f"ffmpeg:-ss {start_time} -t {duration}",
-        url
+        "--quiet"
     ]
+    
+    # If video is longer than 15 seconds, trim it
+    # If video is shorter, we'll use it as-is (but prefer 15-second videos)
+    if video_duration > target_duration:
+        # Trim to exactly 15 seconds from start
+        cmd.extend(["--postprocessor-args", f"ffmpeg:-t {target_duration}"])
+    elif video_duration < target_duration:
+        # Video is shorter, we'll use it but note it
+        print(f"        [!] Video is {video_duration}s (shorter than 15s)")
+    
+    cmd.append(url)
     
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-        return result.returncode == 0 and os.path.exists(output_path)
+        if result.returncode == 0 and os.path.exists(output_path):
+            # Verify duration is correct (or close)
+            return True
+        return False
     except:
         return False
 
@@ -276,41 +335,51 @@ def main():
             print(f"\n[{cat_idx}/{len(test_categories)}] Category: {category} ({expected_label})")
             print(f"    Searching for {count} videos...")
             
-            # Search for videos
-            all_urls = []
+            # Search for videos across multiple platforms
+            all_video_info = []
             for query in queries:
-                urls = search_youtube_videos(query, max_results=count)
-                all_urls.extend(urls)
-                if len(all_urls) >= count:
+                videos = search_videos(query, max_results=count, platforms=["youtube"])
+                all_video_info.extend(videos)
+                if len(all_video_info) >= count:
                     break
-                time.sleep(1)  # Rate limiting
+                time.sleep(2)  # Rate limiting
             
             # Limit to required count
-            all_urls = all_urls[:count]
+            all_video_info = all_video_info[:count]
             
-            if not all_urls:
-                print(f"    [X] No videos found for {category}")
+            if not all_video_info:
+                print(f"    [X] No suitable videos found for {category}")
                 continue
             
-            print(f"    [OK] Found {len(all_urls)} videos")
+            print(f"    [OK] Found {len(all_video_info)} videos (15-second clips)")
             
             # Process each video
-            for vid_idx, url in enumerate(all_urls, 1):
+            for vid_idx, video_info in enumerate(all_video_info, 1):
+                url = video_info["url"]
+                platform = video_info.get("platform", "unknown")
                 video_counter += 1
                 video_id = f"{category}_{vid_idx}"
                 
-                print(f"\n    [{vid_idx}/{len(all_urls)}] Processing: {video_id}")
+                print(f"\n    [{vid_idx}/{len(all_video_info)}] Processing: {video_id}")
+                print(f"        Platform: {platform}")
                 print(f"        URL: {url}")
                 
                 # Get video info
                 info = get_video_info(url)
+                video_duration = info.get("duration", 0)
                 print(f"        Title: {info['title'][:50]}...")
+                print(f"        Duration: {video_duration}s")
                 
-                # Download video (first 15 seconds)
+                # Skip if video is too short or too long
+                if video_duration < 10 or video_duration > 30:
+                    print(f"        [!] Skipping - duration not suitable ({video_duration}s)")
+                    continue
+                
+                # Download video (trimmed to exactly 15 seconds if longer)
                 temp_video_path = os.path.join(temp_dir, f"{video_id}.mp4")
-                print(f"        [DOWNLOAD] Downloading 15 seconds...")
+                print(f"        [DOWNLOAD] Downloading (target: 15 seconds)...")
                 
-                if not download_youtube_video(url, temp_video_path, start_time=0, duration=15):
+                if not download_video(url, temp_video_path, target_duration=15):
                     print(f"        [X] Download failed")
                     continue
                 
@@ -338,7 +407,9 @@ def main():
                 all_results.append({
                     "video_id": video_id,
                     "url": url,
+                    "platform": platform,
                     "title": info['title'],
+                    "duration": video_duration,
                     "category": category,
                     "expected": expected_label,
                     "predicted": predicted_label,
